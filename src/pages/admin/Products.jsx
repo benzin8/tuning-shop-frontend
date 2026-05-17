@@ -165,8 +165,8 @@ export default function AdminProducts() {
             </div>
             {modal.mode === 'create' && (
               <div>
-                <label className="block text-xs text-gray-500 mb-1">SKU *</label>
-                <input required value={form.sku} onChange={set('sku')} className={inp} />
+                <label className="block text-xs text-gray-500 mb-1">SKU <span className="text-gray-600">(необяз., генерируется автоматически)</span></label>
+                <input value={form.sku} onChange={set('sku')} placeholder="Оставьте пустым" className={inp} />
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
