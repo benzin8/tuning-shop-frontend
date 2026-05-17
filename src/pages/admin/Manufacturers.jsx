@@ -26,8 +26,13 @@ export default function AdminManufacturers() {
 
   const handleDelete = async (id) => {
     if (!confirm('Удалить производителя?')) return
-    await deleteManufacturer(id)
-    setItems(prev => prev.filter(x => x.manufacturer_id !== id))
+    try {
+      await deleteManufacturer(id)
+      setItems(prev => prev.filter(x => x.manufacturer_id !== id))
+    } catch (err) {
+      const d = err.response?.data?.detail
+      setError(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при удалении')
+    }
   }
 
   return (

@@ -67,8 +67,13 @@ export default function AdminProducts() {
 
   const handleDelete = async (id) => {
     if (!confirm('Удалить товар?')) return
-    await deleteProduct(id)
-    setProducts(prev => prev.filter(p => p.product_id !== id))
+    try {
+      await deleteProduct(id)
+      setProducts(prev => prev.filter(p => p.product_id !== id))
+    } catch (err) {
+      const d = err.response?.data?.detail
+      alert(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при удалении')
+    }
   }
 
   const inp = "w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"

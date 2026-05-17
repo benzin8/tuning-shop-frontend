@@ -26,8 +26,13 @@ export default function AdminCategories() {
 
   const handleDelete = async (id) => {
     if (!confirm('Удалить категорию?')) return
-    await deleteCategory(id)
-    setItems(prev => prev.filter(x => x.category_id !== id))
+    try {
+      await deleteCategory(id)
+      setItems(prev => prev.filter(x => x.category_id !== id))
+    } catch (err) {
+      const d = err.response?.data?.detail
+      setError(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при удалении')
+    }
   }
 
   return (
