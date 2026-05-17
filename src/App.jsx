@@ -26,6 +26,7 @@ import AdminUsers from './pages/admin/Users'
 import AdminCategories from './pages/admin/Categories'
 import AdminManufacturers from './pages/admin/Manufacturers'
 import AdminCars from './pages/admin/Cars'
+import AdminServiceRequests from './pages/admin/ServiceRequests'
 
 function ClientLayout({ children }) {
   return (
@@ -63,6 +64,7 @@ export default function App() {
               <Route path="categories" element={<AdminCategories />} />
               <Route path="manufacturers" element={<AdminManufacturers />} />
               <Route path="cars" element={<AdminCars />} />
+              <Route path="services" element={<AdminServiceRequests />} />
             </Route>
           </Routes>
         </CartProvider>
