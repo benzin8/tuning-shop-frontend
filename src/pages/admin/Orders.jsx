@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom'
 import { ExternalLink, Clock } from 'lucide-react'
 import { getAllOrders, getOrderStatuses, updateOrderStatus } from '../../api/orders'
 
-const STATUS_CLS = {
-  pending:    'bg-gray-700 text-gray-300',
-  confirmed:  'bg-blue-500/20 text-blue-400',
-  processing: 'bg-yellow-500/20 text-yellow-400',
-  shipped:    'bg-purple-500/20 text-purple-400',
-  delivered:  'bg-green-500/20 text-green-400',
-  cancelled:  'bg-red-500/20 text-red-400',
+const STATUS = {
+  pending:    { label: 'Ожидает',     cls: 'bg-gray-700 text-gray-300' },
+  confirmed:  { label: 'Подтверждён', cls: 'bg-blue-500/20 text-blue-400' },
+  processing: { label: 'В обработке', cls: 'bg-yellow-500/20 text-yellow-400' },
+  shipped:    { label: 'Отправлен',   cls: 'bg-purple-500/20 text-purple-400' },
+  delivered:  { label: 'Доставлен',   cls: 'bg-green-500/20 text-green-400' },
+  cancelled:  { label: 'Отменён',     cls: 'bg-red-500/20 text-red-400' },
 }
 
 export default function AdminOrders() {
@@ -76,10 +76,10 @@ export default function AdminOrders() {
                         value={order.status.status_id}
                         disabled={updating === order.order_id}
                         onChange={e => handleStatus(order.order_id, e.target.value)}
-                        className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer focus:outline-none disabled:opacity-50 ${STATUS_CLS[order.status.status_name] ?? 'bg-gray-700 text-gray-300'}`}
+                        className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer focus:outline-none disabled:opacity-50 ${(STATUS[order.status.status_name] ?? { cls: 'bg-gray-700 text-gray-300' }).cls}`}
                       >
                         {statuses.map(s => (
-                          <option key={s.status_id} value={s.status_id} className="bg-gray-800 text-gray-200">{s.status_name}</option>
+                          <option key={s.status_id} value={s.status_id} className="bg-gray-800 text-gray-200">{STATUS[s.status_name]?.label ?? s.status_name}</option>
                         ))}
                       </select>
                     </td>
