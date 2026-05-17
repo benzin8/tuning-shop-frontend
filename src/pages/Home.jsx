@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  Search, ChevronDown, ArrowRight,
+  Search, ArrowRight,
   Layers, Zap, ShieldCheck, Wind, Cog, Car,
   Truck, BadgeCheck, RotateCcw,
   Package, TrendingUp,
 } from 'lucide-react'
 import { getProducts } from '../api/products'
+import { getBrands, getModels, getCars } from '../api/cars'
 import { useCart } from '../contexts/CartContext'
 
 const CATEGORIES = [
@@ -45,11 +46,42 @@ const FEATURES = [
 
 export default function Home() {
   const [products, setProducts] = useState([])
+  const [brands, setBrands] = useState([])
+  const [models, setModels] = useState([])
+  const [cars, setCars] = useState([])
+  const [selectedBrand, setSelectedBrand] = useState('')
+  const [selectedModel, setSelectedModel] = useState('')
+  const [selectedCar, setSelectedCar] = useState('')
   const { addToCart } = useCart()
+  const navigate = useNavigate()
 
   useEffect(() => {
     getProducts({ limit: 4 }).then(r => setProducts(r.data))
+    getBrands().then(r => setBrands(r.data))
   }, [])
+
+  useEffect(() => {
+    setSelectedModel('')
+    setSelectedCar('')
+    setModels([])
+    setCars([])
+    if (selectedBrand) getModels(selectedBrand).then(r => setModels(r.data))
+  }, [selectedBrand])
+
+  useEffect(() => {
+    setSelectedCar('')
+    setCars([])
+    if (selectedModel) getCars(selectedModel).then(r => setCars(r.data))
+  }, [selectedModel])
+
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    if (selectedCar) params.set('car_id', selectedCar)
+    else if (selectedModel) params.set('model_id', selectedModel)
+    navigate(`/catalog?${params.toString()}`)
+  }
+
+  const selectClass = "flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-orange-500 transition-colors appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
 
   return (
     <div className="bg-gray-950">
@@ -77,19 +109,27 @@ export default function Home() {
 
           {/* поиск по авто */}
           <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mb-6">
-            <div className="flex-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-600 transition-colors">
-              <span className="text-gray-400 text-sm flex-1">Марка</span>
-              <ChevronDown size={16} className="text-gray-500" />
-            </div>
-            <div className="flex-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-600 transition-colors">
-              <span className="text-gray-400 text-sm flex-1">Модель</span>
-              <ChevronDown size={16} className="text-gray-500" />
-            </div>
-            <div className="flex-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-600 transition-colors">
-              <span className="text-gray-400 text-sm flex-1">Год</span>
-              <ChevronDown size={16} className="text-gray-500" />
-            </div>
-            <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl px-6 py-3 transition-colors shrink-0">
+            <select value={selectedBrand} onChange={e => setSelectedBrand(e.target.value)} className={selectClass}>
+              <option value="">Марка</option>
+              {brands.map(b => <option key={b.brand_id} value={b.brand_id}>{b.brand_name}</option>)}
+            </select>
+            <select value={selectedModel} onChange={e => setSelectedModel(e.target.value)} disabled={!selectedBrand} className={selectClass}>
+              <option value="">Модель</option>
+              {models.map(m => <option key={m.model_id} value={m.model_id}>{m.model_name}</option>)}
+            </select>
+            <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} disabled={!selectedModel} className={selectClass}>
+              <option value="">Год</option>
+              {cars.map(c => (
+                <option key={c.car_id} value={c.car_id}>
+                  {c.year_start}–{c.year_end ?? '...'}{c.generation ? ` ${c.generation}` : ''}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleSearch}
+              disabled={!selectedBrand}
+              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl px-6 py-3 transition-colors shrink-0"
+            >
               <Search size={16} />
               Найти
             </button>

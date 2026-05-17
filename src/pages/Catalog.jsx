@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Package, SlidersHorizontal, X, ShoppingCart, Pencil, Trash2 } from 'lucide-react'
 import { getProducts, deleteProduct } from '../api/products'
 import { getCategories } from '../api/categories'
@@ -15,7 +15,12 @@ export default function Catalog() {
   const [brands, setBrands] = useState([])
   const [models, setModels] = useState([])
   const [cars, setCars] = useState([])
-  const [filters, setFilters] = useState({ category_id: '', manufacturer_id: '', car_id: '' })
+  const [searchParams] = useSearchParams()
+  const [filters, setFilters] = useState({
+    category_id: '',
+    manufacturer_id: '',
+    car_id: searchParams.get('car_id') || '',
+  })
   const [selectedBrand, setSelectedBrand] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
   const [loading, setLoading] = useState(true)
