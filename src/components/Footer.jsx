@@ -11,8 +11,8 @@ export default function Footer() {
         </div>
         <div className="flex gap-6">
           <Link to="/catalog" className="hover:text-gray-200 transition-colors">Каталог</Link>
-          <a href="#" className="hover:text-gray-200 transition-colors">Доставка</a>
-          <a href="#" className="hover:text-gray-200 transition-colors">Возврат</a>
+          <Link to="/delivery" className="hover:text-gray-200 transition-colors">Доставка</Link>
+          <Link to="/returns" className="hover:text-gray-200 transition-colors">Возврат</Link>
         </div>
         <div>© 2025 TuningShop</div>
       </div>

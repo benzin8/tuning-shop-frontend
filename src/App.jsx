@@ -15,6 +15,8 @@ import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
 import Profile from './pages/Profile'
 import Services from './pages/Services'
+import Delivery from './pages/Delivery'
+import Returns from './pages/Returns'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
@@ -55,6 +57,8 @@ export default function App() {
             <Route path="/orders/:id" element={<ClientLayout><ProtectedRoute><OrderDetail /></ProtectedRoute></ClientLayout>} />
             <Route path="/profile" element={<ClientLayout><ProtectedRoute><Profile /></ProtectedRoute></ClientLayout>} />
             <Route path="/services" element={<ClientLayout><Services /></ClientLayout>} />
+            <Route path="/delivery" element={<ClientLayout><Delivery /></ClientLayout>} />
+            <Route path="/returns" element={<ClientLayout><Returns /></ClientLayout>} />
 
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<Dashboard />} />
