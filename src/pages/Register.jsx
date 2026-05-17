@@ -4,6 +4,21 @@ import { Wrench } from 'lucide-react'
 import { register } from '../api/auth'
 import { useAuth } from '../contexts/AuthContext'
 
+const VALIDATION_MAP = [
+  [/value error,\s*/i, ''],
+  [/field required/i, 'Поле обязательно для заполнения'],
+  [/value is not a valid email address/i, 'Некорректный email'],
+  [/ensure this value has at least \d+ character/i, 'Слишком короткое значение'],
+]
+
+function parseValidationMsg(msg) {
+  for (const [pattern, replacement] of VALIDATION_MAP) {
+    if (typeof replacement === 'string' && replacement && pattern.test(msg)) return replacement
+    if (pattern.test(msg)) msg = msg.replace(pattern, replacement)
+  }
+  return msg.trim() || 'Некорректное значение'
+}
+
 export default function Register() {
   const [form, setForm] = useState({ username: '', email: '', phone: '', password: '' })
   const [error, setError] = useState('')
@@ -24,7 +39,7 @@ export default function Register() {
     } catch (err) {
       const detail = err.response?.data?.detail
       if (Array.isArray(detail)) {
-        setError(detail.map(e => e.msg).join('. '))
+        setError(detail.map(e => parseValidationMsg(e.msg)).join('. '))
       } else {
         setError(detail || 'Ошибка регистрации')
       }
