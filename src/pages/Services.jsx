@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Cog, Layers, Wind, ShieldCheck, Package, Zap,
-  Clock, CheckCircle2, X, ChevronRight,
+  Clock, CheckCircle2, X, ChevronRight, AlertTriangle,
 } from 'lucide-react'
 import { getServices, createServiceRequest } from '../api/services'
 import { useAuth } from '../contexts/AuthContext'
@@ -202,11 +202,33 @@ export default function Services() {
                   {items.map(service => (
                     <div
                       key={service.service_id}
-                      className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col hover:border-gray-700 transition-colors"
+                      className={`bg-gray-900 border rounded-2xl p-6 flex flex-col transition-colors ${
+                        service.requires_gibdd
+                          ? 'border-yellow-500/30 hover:border-yellow-500/50'
+                          : 'border-gray-800 hover:border-gray-700'
+                      }`}
                     >
                       <div className="flex-1">
-                        <h3 className="text-base font-semibold text-white mb-2">{service.name}</h3>
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <h3 className="text-base font-semibold text-white leading-snug">{service.name}</h3>
+                          {service.requires_gibdd && (
+                            <span className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-full px-2.5 py-1 whitespace-nowrap">
+                              <AlertTriangle size={11} />
+                              Рег. ГИБДД
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-400 leading-relaxed mb-4">{service.description}</p>
+
+                        {service.requires_gibdd && (
+                          <div className="flex items-start gap-2 bg-yellow-500/5 border border-yellow-500/15 rounded-xl px-3 py-2.5 mb-4">
+                            <AlertTriangle size={14} className="text-yellow-500 shrink-0 mt-0.5" />
+                            <p className="text-xs text-yellow-400/80 leading-relaxed">
+                              Данная услуга предполагает внесение изменений в конструкцию ТС и требует последующей регистрации в ГИБДД согласно Постановлению Правительства РФ №413. Мы поможем с оформлением документов.
+                            </p>
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           {service.duration && (
                             <span className="flex items-center gap-1.5">
