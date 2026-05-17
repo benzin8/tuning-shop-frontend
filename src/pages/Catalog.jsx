@@ -17,7 +17,7 @@ export default function Catalog() {
   const [cars, setCars] = useState([])
   const [searchParams] = useSearchParams()
   const [filters, setFilters] = useState({
-    category_id: '',
+    category_id: searchParams.get('category_id') || '',
     manufacturer_id: '',
     car_id: searchParams.get('car_id') || '',
   })

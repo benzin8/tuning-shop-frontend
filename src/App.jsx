@@ -14,6 +14,7 @@ import Checkout from './pages/Checkout'
 import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
 import Profile from './pages/Profile'
+import Services from './pages/Services'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/orders" element={<ClientLayout><ProtectedRoute><Orders /></ProtectedRoute></ClientLayout>} />
             <Route path="/orders/:id" element={<ClientLayout><ProtectedRoute><OrderDetail /></ProtectedRoute></ClientLayout>} />
             <Route path="/profile" element={<ClientLayout><ProtectedRoute><Profile /></ProtectedRoute></ClientLayout>} />
+            <Route path="/services" element={<ClientLayout><Services /></ClientLayout>} />
 
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<Dashboard />} />

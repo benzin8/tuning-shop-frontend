@@ -7,19 +7,20 @@ import {
   Package, TrendingUp,
 } from 'lucide-react'
 import { getProducts } from '../api/products'
+import { getCategories } from '../api/categories'
 import { getBrands, getModels, getCars } from '../api/cars'
 import { useCart } from '../contexts/CartContext'
 
-const CATEGORIES = [
-  { name: 'Подвеска', icon: Layers, count: '240+ товаров' },
-  { name: 'Двигатель', icon: Cog, count: '180+ товаров' },
-  { name: 'Тормоза', icon: ShieldCheck, count: '150+ товаров' },
-  { name: 'Выхлоп', icon: Wind, count: '90+ товаров' },
-  { name: 'Электрика', icon: Zap, count: '210+ товаров' },
-  { name: 'Трансмиссия', icon: Car, count: '120+ товаров' },
-  { name: 'Кузов', icon: Package, count: '300+ товаров' },
-  { name: 'Тюнинг', icon: TrendingUp, count: '160+ товаров' },
-]
+const CATEGORY_ICONS = {
+  'Подвеска': Layers,
+  'Двигатель': Cog,
+  'Тормоза': ShieldCheck,
+  'Выхлоп': Wind,
+  'Электрика': Zap,
+  'Трансмиссия': Car,
+  'Кузов': Package,
+  'Тюнинг': TrendingUp,
+}
 
 const FEATURES = [
   {
@@ -46,6 +47,7 @@ const FEATURES = [
 
 export default function Home() {
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [models, setModels] = useState([])
   const [cars, setCars] = useState([])
@@ -58,6 +60,7 @@ export default function Home() {
   useEffect(() => {
     getProducts({ limit: 4 }).then(r => setProducts(r.data))
     getBrands().then(r => setBrands(r.data))
+    getCategories().then(r => setCategories(r.data))
   }, [])
 
   useEffect(() => {
@@ -81,17 +84,26 @@ export default function Home() {
     navigate(`/catalog?${params.toString()}`)
   }
 
-  const selectClass = "flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-orange-500 transition-colors appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+  const selectClass = "flex-1 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-orange-500 transition-colors appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
 
   return (
     <div className="bg-gray-950">
       {/* ── Hero ── */}
       <section className="relative overflow-hidden">
-        {/* фоновый градиент */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-gray-950" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-orange-500/5 rounded-full blur-3xl" />
+        {/* layered background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-950 to-gray-950" />
+        {/* radial orange glow from top */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(249,115,22,0.18),transparent)]" />
+        {/* subtle dot grid */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(circle, #f97316 1px, transparent 1px)', backgroundSize: '36px 36px' }}
+        />
+        {/* accent blobs */}
+        <div className="absolute top-16 right-24 w-64 h-64 bg-orange-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-16 w-80 h-40 bg-orange-500/6 rounded-full blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-4 pt-20 pb-24">
+        <div id="car-search" className="relative max-w-7xl mx-auto px-4 pt-20 pb-28">
           {/* badge */}
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 text-orange-400 text-sm font-medium mb-6">
             <TrendingUp size={14} />
@@ -149,7 +161,7 @@ export default function Home() {
       </section>
 
       {/* ── Статистика ── */}
-      <div className="border-y border-gray-800 bg-gray-900/50">
+      <div className="border-y border-gray-800/60 bg-gray-900/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {[
             { value: '1 000+', label: 'Товаров' },
@@ -179,21 +191,23 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {CATEGORIES.map(({ name, icon: Icon, count }) => (
-            <Link
-              key={name}
-              to="/catalog"
-              className="flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-orange-500/40 hover:bg-gray-800/80 transition-all group text-center"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gray-800 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
-                <Icon size={22} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">{name}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{count}</div>
-              </div>
-            </Link>
-          ))}
+          {categories.map(cat => {
+            const Icon = CATEGORY_ICONS[cat.category_name] ?? Package
+            return (
+              <Link
+                key={cat.category_id}
+                to={`/catalog?category_id=${cat.category_id}`}
+                className="flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-orange-500/40 hover:bg-gray-800/80 transition-all group text-center"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gray-800 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
+                  <Icon size={22} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">{cat.category_name}</div>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
@@ -239,15 +253,16 @@ export default function Home() {
       </section>
 
       {/* ── Преимущества ── */}
-      <section className="border-t border-gray-800 bg-gray-900/40">
-        <div className="max-w-7xl mx-auto px-4 py-16">
+      <section className="relative border-t border-gray-800/60">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/60 to-transparent pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 py-16">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-white">Почему выбирают нас</h2>
             <p className="text-gray-400 mt-2 text-sm">Работаем для вашего удобства</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex flex-col items-start gap-4 p-6 bg-gray-900 border border-gray-800 rounded-2xl">
+              <div key={title} className="flex flex-col items-start gap-4 p-6 bg-gray-900 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors">
                 <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center">
                   <Icon size={20} className="text-orange-400" />
                 </div>
@@ -263,21 +278,24 @@ export default function Home() {
 
       {/* ── CTA баннер ── */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="relative overflow-hidden bg-gradient-to-r from-orange-600 to-orange-500 rounded-3xl px-8 py-12 text-center">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500 rounded-3xl px-8 py-12 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+          />
           <div className="relative">
             <h2 className="text-3xl font-bold text-white mb-3">Не знаете, что нужно?</h2>
             <p className="text-orange-100 mb-6 text-lg">
               Подберём запчасти точно под ваш автомобиль — просто выберите марку и модель.
             </p>
-            <Link to="/catalog" className="inline-flex items-center gap-2 bg-white text-orange-600 font-bold px-7 py-3.5 rounded-xl hover:bg-orange-50 transition-colors">
+            <a href="#car-search" className="inline-flex items-center gap-2 bg-white text-orange-600 font-bold px-7 py-3.5 rounded-xl hover:bg-orange-50 transition-colors">
               Подобрать по авто
               <ArrowRight size={16} />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
-
     </div>
   )
 }

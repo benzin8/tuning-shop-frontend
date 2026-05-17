@@ -22,6 +22,7 @@ export default function Header() {
 
         <nav className="hidden md:flex items-center gap-7 text-sm text-gray-300">
           <Link to="/catalog" className="hover:text-white transition-colors">Каталог</Link>
+          <Link to="/services" className="hover:text-white transition-colors">Услуги</Link>
           {isAdmin && (
             <Link to="/admin" className="flex items-center gap-1.5 text-orange-400 hover:text-orange-300 transition-colors">
               <LayoutDashboard size={15} />
@@ -73,6 +74,7 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-800 bg-gray-900 px-4 py-4 flex flex-col gap-4 text-sm text-gray-300">
           <Link to="/catalog" onClick={() => setMobileOpen(false)} className="hover:text-white">Каталог</Link>
+          <Link to="/services" onClick={() => setMobileOpen(false)} className="hover:text-white">Услуги</Link>
           <Link to="/cart" onClick={() => setMobileOpen(false)} className="hover:text-white">
             Корзина {totalItems > 0 && `(${totalItems})`}
           </Link>
