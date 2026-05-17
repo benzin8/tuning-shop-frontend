@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Mail, Phone, Shield, Calendar, Check, Pencil, X } from 'lucide-react'
+import { User, Mail, Phone, Shield, Calendar, Check, Pencil, X, ShoppingBag, Wrench, Clock, ChevronRight } from 'lucide-react'
 import { updateMe } from '../api/users'
+import { getMyOrders } from '../api/orders'
+import { getMyServiceRequests } from '../api/services'
 import { useAuth } from '../contexts/AuthContext'
 
 function InfoRow({ icon: Icon, label, value }) {
@@ -18,6 +20,23 @@ function InfoRow({ icon: Icon, label, value }) {
   )
 }
 
+const ORDER_STATUS = {
+  pending:    { label: 'Ожидает',     cls: 'bg-gray-700 text-gray-300' },
+  confirmed:  { label: 'Подтверждён', cls: 'bg-blue-500/20 text-blue-400' },
+  processing: { label: 'В обработке', cls: 'bg-yellow-500/20 text-yellow-400' },
+  shipped:    { label: 'Отправлен',   cls: 'bg-purple-500/20 text-purple-400' },
+  delivered:  { label: 'Доставлен',   cls: 'bg-green-500/20 text-green-400' },
+  cancelled:  { label: 'Отменён',     cls: 'bg-red-500/20 text-red-400' },
+}
+
+const SERVICE_STATUS = {
+  new:         { label: 'Новая',        cls: 'bg-blue-500/20 text-blue-400' },
+  confirmed:   { label: 'Подтверждена', cls: 'bg-orange-500/20 text-orange-400' },
+  in_progress: { label: 'В работе',     cls: 'bg-yellow-500/20 text-yellow-400' },
+  done:        { label: 'Выполнена',    cls: 'bg-green-500/20 text-green-400' },
+  cancelled:   { label: 'Отменена',     cls: 'bg-red-500/20 text-red-400' },
+}
+
 export default function Profile() {
   const { user, setUser } = useAuth()
   const [editing, setEditing] = useState(false)
@@ -25,6 +44,13 @@ export default function Profile() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [serviceRequests, setServiceRequests] = useState([])
+
+  useEffect(() => {
+    getMyOrders().then(r => setOrders(r.data.slice().reverse().slice(0, 5)))
+    getMyServiceRequests().then(r => setServiceRequests(r.data.slice(0, 5)))
+  }, [])
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
 
@@ -135,17 +161,93 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Quick links */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-3">Быстрые ссылки</h2>
-        <div className="flex flex-col gap-2">
-          <Link to="/orders" className="text-sm text-gray-400 hover:text-orange-400 transition-colors">
-            → Мои заказы
-          </Link>
-          <Link to="/catalog" className="text-sm text-gray-400 hover:text-orange-400 transition-colors">
-            → Каталог
+      {/* Мои заказы */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+          <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <ShoppingBag size={16} className="text-orange-400" />
+            Мои заказы
+          </div>
+          <Link to="/orders" className="text-xs text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1">
+            Все <ChevronRight size={13} />
           </Link>
         </div>
+        {orders.length === 0 ? (
+          <div className="px-6 py-5 text-sm text-gray-500">
+            Заказов пока нет.{' '}
+            <Link to="/catalog" className="text-orange-400 hover:text-orange-300 transition-colors">В каталог →</Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {orders.map(order => {
+              const s = ORDER_STATUS[order.status.status_name] ?? { label: order.status.status_name, cls: 'bg-gray-700 text-gray-300' }
+              return (
+                <Link key={order.order_id} to={`/orders/${order.order_id}`}
+                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-800/40 transition-colors group">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 mb-0.5">
+                      <span className="text-sm font-semibold text-gray-200">Заказ #{order.order_id}</span>
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1"><Clock size={10} />
+                        {new Date(order.created_at).toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                      <span>·</span>
+                      <span>{order.items.length} поз.</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-bold text-white">{Number(order.total_amount).toLocaleString('ru')} ₽</div>
+                    <ChevronRight size={14} className="text-gray-600 group-hover:text-orange-400 transition-colors ml-auto mt-0.5" />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Заявки на услуги */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+          <div className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Wrench size={16} className="text-orange-400" />
+            Заявки на услуги
+          </div>
+          <Link to="/services" className="text-xs text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1">
+            Записаться <ChevronRight size={13} />
+          </Link>
+        </div>
+        {serviceRequests.length === 0 ? (
+          <div className="px-6 py-5 text-sm text-gray-500">
+            Заявок пока нет.{' '}
+            <Link to="/services" className="text-orange-400 hover:text-orange-300 transition-colors">Посмотреть услуги →</Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {serviceRequests.map(req => {
+              const s = SERVICE_STATUS[req.status] ?? { label: req.status, cls: 'bg-gray-700 text-gray-300' }
+              return (
+                <div key={req.request_id} className="flex items-center gap-4 px-6 py-3.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5 mb-0.5">
+                      <span className="text-sm font-medium text-gray-200 truncate">{req.service.name}</span>
+                      <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="text-gray-600">{req.car_info}</span>
+                      <span>·</span>
+                      <span className="flex items-center gap-1"><Clock size={10} />
+                        {new Date(req.created_at).toLocaleDateString('ru', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
