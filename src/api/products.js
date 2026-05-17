@@ -1,6 +1,8 @@
 import client from './client'
 
 export const getProducts = (params) => client.get('/products/', { params })
+export const getAllProductsAdmin = () => client.get('/products/admin/all')
+export const restoreProduct = (id) => client.post(`/products/${id}/restore`)
 export const getProduct = (id) => client.get(`/products/${id}`)
 export const createProduct = (data) => client.post('/products/', data)
 export const updateProduct = (id, data) => client.patch(`/products/${id}`, data)

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Package, Plus, Pencil, Trash2, X, Check } from 'lucide-react'
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../../api/products'
+import { Package, Plus, Pencil, Trash2, X, Check, ArchiveRestore } from 'lucide-react'
+import { getAllProductsAdmin, createProduct, updateProduct, deleteProduct, restoreProduct } from '../../api/products'
 import { getCategories } from '../../api/categories'
 import { getManufacturers } from '../../api/manufacturers'
 
@@ -32,7 +32,7 @@ export default function AdminProducts() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getProducts(), getCategories(), getManufacturers()])
+    Promise.all([getAllProductsAdmin(), getCategories(), getManufacturers()])
       .then(([p, c, m]) => { setProducts(p.data); setCategories(c.data); setManufacturers(m.data) })
       .finally(() => setLoading(false))
   }, [])
@@ -66,13 +66,23 @@ export default function AdminProducts() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Удалить товар?')) return
+    if (!confirm('Архивировать товар? Он скроется из каталога.')) return
     try {
       await deleteProduct(id)
-      setProducts(prev => prev.filter(p => p.product_id !== id))
+      setProducts(prev => prev.map(p => p.product_id === id ? { ...p, is_active: false } : p))
     } catch (err) {
       const d = err.response?.data?.detail
-      alert(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при удалении')
+      alert(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при архивировании')
+    }
+  }
+
+  const handleRestore = async (id) => {
+    try {
+      const res = await restoreProduct(id)
+      setProducts(prev => prev.map(p => p.product_id === id ? res.data : p))
+    } catch (err) {
+      const d = err.response?.data?.detail
+      alert(Array.isArray(d) ? d.map(x => x.msg).join(', ') : d || 'Ошибка при восстановлении')
     }
   }
 
@@ -106,7 +116,7 @@ export default function AdminProducts() {
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {products.map(p => (
-                  <tr key={p.product_id} className="hover:bg-gray-800/30 transition-colors">
+                  <tr key={p.product_id} className={`transition-colors ${p.is_active ? 'hover:bg-gray-800/30' : 'opacity-50 hover:bg-gray-800/20'}`}>
                     <td className="px-4 py-2.5">
                       <div className="w-10 h-10 bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                         {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <Package size={16} className="text-gray-600" />}
@@ -114,7 +124,10 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="text-gray-200 font-medium leading-snug line-clamp-1">{p.product_name}</div>
-                      <div className="text-xs text-gray-500 font-mono">{p.sku}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-mono">{p.sku}</span>
+                        {!p.is_active && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">Архив</span>}
+                      </div>
                     </td>
                     <td className="px-4 py-2.5 text-gray-400 text-xs">{p.category.category_name}</td>
                     <td className="px-4 py-2.5 text-white font-semibold whitespace-nowrap">{Number(p.price).toLocaleString('ru')} ₽</td>
@@ -125,8 +138,14 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-1.5 justify-end">
-                        <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-orange-400 hover:bg-gray-800 rounded-lg transition-colors"><Pencil size={14} /></button>
-                        <button onClick={() => handleDelete(p.product_id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                        {p.is_active ? (
+                          <>
+                            <button onClick={() => openEdit(p)} className="p-1.5 text-gray-500 hover:text-orange-400 hover:bg-gray-800 rounded-lg transition-colors"><Pencil size={14} /></button>
+                            <button onClick={() => handleDelete(p.product_id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                          </>
+                        ) : (
+                          <button onClick={() => handleRestore(p.product_id)} title="Восстановить" className="p-1.5 text-gray-500 hover:text-green-400 hover:bg-gray-800 rounded-lg transition-colors"><ArchiveRestore size={14} /></button>
+                        )}
                       </div>
                     </td>
                   </tr>
