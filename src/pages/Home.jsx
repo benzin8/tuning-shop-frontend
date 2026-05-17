@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useInView } from '../hooks/useInView'
 import {
   Search, ArrowRight,
   Layers, Zap, ShieldCheck, Wind, Cog, Car,
@@ -56,6 +57,12 @@ export default function Home() {
   const [selectedCar, setSelectedCar] = useState('')
   const { addToCart } = useCart()
   const navigate = useNavigate()
+
+  const [statsRef, statsInView] = useInView()
+  const [catsRef, catsInView] = useInView()
+  const [productsRef, productsInView] = useInView()
+  const [featuresRef, featuresInView] = useInView()
+  const [ctaRef, ctaInView] = useInView()
 
   useEffect(() => {
     getProducts({ limit: 4 }).then(r => setProducts(r.data))
@@ -153,8 +160,8 @@ export default function Home() {
               <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <span className="text-gray-700">·</span>
-            <a href="#categories" className="text-gray-400 hover:text-gray-200 text-sm transition-colors">
-              Популярные категории ↓
+            <a href="#popular" className="text-gray-400 hover:text-gray-200 text-sm transition-colors">
+              Популярные товары ↓
             </a>
           </div>
         </div>
@@ -162,7 +169,7 @@ export default function Home() {
 
       {/* ── Статистика ── */}
       <div className="border-y border-gray-800/60 bg-gray-900/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div ref={statsRef} className={`max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center fade-up ${statsInView ? 'in-view' : ''}`}>
           {[
             { value: '1 000+', label: 'Товаров' },
             { value: '50+',    label: 'Производителей' },
@@ -178,8 +185,8 @@ export default function Home() {
       </div>
 
       {/* ── Категории ── */}
-      <section id="categories" className="max-w-7xl mx-auto px-4 py-16">
-        <div className="flex items-end justify-between mb-8">
+      <section id="categories" ref={catsRef} className="max-w-7xl mx-auto px-4 py-16">
+        <div className={`flex items-end justify-between mb-8 fade-up ${catsInView ? 'in-view' : ''}`}>
           <div>
             <h2 className="text-2xl font-bold text-white">Категории</h2>
             <p className="text-gray-400 mt-1 text-sm">Найдите нужную деталь по типу</p>
@@ -191,13 +198,14 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {categories.map(cat => {
+          {categories.map((cat, i) => {
             const Icon = CATEGORY_ICONS[cat.category_name] ?? Package
             return (
               <Link
                 key={cat.category_id}
                 to={`/catalog?category_id=${cat.category_id}`}
-                className="flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-orange-500/40 hover:bg-gray-800/80 transition-all group text-center"
+                className={`flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-orange-500/40 hover:bg-gray-800/80 transition-all group text-center fade-up ${catsInView ? 'in-view' : ''}`}
+                style={catsInView ? { animationDelay: `${i * 45}ms` } : undefined}
               >
                 <div className="w-12 h-12 rounded-xl bg-gray-800 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
                   <Icon size={22} className="text-gray-400 group-hover:text-orange-400 transition-colors" />
@@ -212,8 +220,8 @@ export default function Home() {
       </section>
 
       {/* ── Популярные товары ── */}
-      <section className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="flex items-end justify-between mb-8">
+      <section id="popular" ref={productsRef} className="max-w-7xl mx-auto px-4 pb-16">
+        <div className={`flex items-end justify-between mb-8 fade-up ${productsInView ? 'in-view' : ''}`}>
           <div>
             <h2 className="text-2xl font-bold text-white">Популярные товары</h2>
             <p className="text-gray-400 mt-1 text-sm">Самые покупаемые позиции</p>
@@ -225,8 +233,12 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {products.map(p => (
-            <div key={p.product_id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 hover:bg-gray-800/60 transition-all group flex flex-col">
+          {products.map((p, i) => (
+            <div
+              key={p.product_id}
+              className={`bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 hover:bg-gray-800/60 transition-all group flex flex-col fade-up ${productsInView ? 'in-view' : ''}`}
+              style={productsInView ? { animationDelay: `${i * 75}ms` } : undefined}
+            >
               <Link to={`/product/${p.product_id}`} className="block">
                 <div className="w-full h-40 bg-gray-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center group-hover:bg-gray-700/80 transition-colors">
                   {p.image_url
@@ -253,16 +265,20 @@ export default function Home() {
       </section>
 
       {/* ── Преимущества ── */}
-      <section className="relative border-t border-gray-800/60">
+      <section ref={featuresRef} className="relative border-t border-gray-800/60">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/60 to-transparent pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 py-16">
-          <div className="text-center mb-10">
+          <div className={`text-center mb-10 fade-up ${featuresInView ? 'in-view' : ''}`}>
             <h2 className="text-2xl font-bold text-white">Почему выбирают нас</h2>
             <p className="text-gray-400 mt-2 text-sm">Работаем для вашего удобства</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex flex-col items-start gap-4 p-6 bg-gray-900 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors">
+            {FEATURES.map(({ icon: Icon, title, text }, i) => (
+              <div
+                key={title}
+                className={`flex flex-col items-start gap-4 p-6 bg-gray-900 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors fade-up ${featuresInView ? 'in-view' : ''}`}
+                style={featuresInView ? { animationDelay: `${i * 80}ms` } : undefined}
+              >
                 <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center">
                   <Icon size={20} className="text-orange-400" />
                 </div>
@@ -277,8 +293,8 @@ export default function Home() {
       </section>
 
       {/* ── CTA баннер ── */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500 rounded-3xl px-8 py-12 text-center">
+      <section ref={ctaRef} className="max-w-7xl mx-auto px-4 py-16">
+        <div className={`relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500 rounded-3xl px-8 py-12 text-center fade-up ${ctaInView ? 'in-view' : ''}`}>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
           <div
             className="absolute inset-0 opacity-[0.06]"
