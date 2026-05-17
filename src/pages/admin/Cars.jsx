@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, ChevronRight } from 'lucide-react'
-import { getBrands, createBrand, getModels, createModel, getCars, createCar, deleteCar } from '../../api/cars'
+import { getBrands, createBrand, deleteBrand, getModels, createModel, deleteModel, getCars, createCar, deleteCar } from '../../api/cars'
 
 function AddForm({ placeholder, onAdd, disabled }) {
   const [val, setVal] = useState('')
@@ -57,9 +57,21 @@ export default function AdminCars() {
     const res = await createBrand(name)
     setBrands(prev => [...prev, res.data])
   }
+  const rmBrand = async (id) => {
+    if (!confirm('Удалить марку и все её модели/авто?')) return
+    await deleteBrand(id)
+    setBrands(prev => prev.filter(b => b.brand_id !== id))
+    if (selBrand?.brand_id === id) { setSelBrand(null); setModels([]); setSelModel(null); setCars([]) }
+  }
   const addModel = async (name) => {
     const res = await createModel({ brand_id: selBrand.brand_id, model_name: name })
     setModels(prev => [...prev, res.data])
+  }
+  const rmModel = async (id) => {
+    if (!confirm('Удалить модель и все её записи?')) return
+    await deleteModel(id)
+    setModels(prev => prev.filter(m => m.model_id !== id))
+    if (selModel?.model_id === id) { setSelModel(null); setCars([]) }
   }
   const addCar = async (e) => {
     e.preventDefault()
@@ -84,11 +96,16 @@ export default function AdminCars() {
         {/* Марки */}
         <Panel title="Марки">
           {brands.map(b => (
-            <button key={b.brand_id} onClick={() => selectBrand(b)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors ${selBrand?.brand_id === b.brand_id ? 'bg-orange-500/10 text-orange-400' : 'text-gray-300 hover:bg-gray-800/50'}`}>
-              {b.brand_name}
-              <ChevronRight size={14} className="text-gray-600" />
-            </button>
+            <div key={b.brand_id} className={`flex items-center group transition-colors ${selBrand?.brand_id === b.brand_id ? 'bg-orange-500/10' : 'hover:bg-gray-800/50'}`}>
+              <button onClick={() => selectBrand(b)}
+                className={`flex-1 flex items-center justify-between px-4 py-3 text-sm text-left ${selBrand?.brand_id === b.brand_id ? 'text-orange-400' : 'text-gray-300'}`}>
+                {b.brand_name}
+                <ChevronRight size={14} className="text-gray-600" />
+              </button>
+              <button onClick={() => rmBrand(b.brand_id)} className="px-3 py-3 text-gray-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                <Trash2 size={13} />
+              </button>
+            </div>
           ))}
           <div className="px-3 py-2">
             <AddForm placeholder="Новая марка" onAdd={addBrand} />
@@ -102,11 +119,16 @@ export default function AdminCars() {
           ) : (
             <>
               {models.map(m => (
-                <button key={m.model_id} onClick={() => selectModel(m)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-sm text-left transition-colors ${selModel?.model_id === m.model_id ? 'bg-orange-500/10 text-orange-400' : 'text-gray-300 hover:bg-gray-800/50'}`}>
-                  {m.model_name}
-                  <ChevronRight size={14} className="text-gray-600" />
-                </button>
+                <div key={m.model_id} className={`flex items-center group transition-colors ${selModel?.model_id === m.model_id ? 'bg-orange-500/10' : 'hover:bg-gray-800/50'}`}>
+                  <button onClick={() => selectModel(m)}
+                    className={`flex-1 flex items-center justify-between px-4 py-3 text-sm text-left ${selModel?.model_id === m.model_id ? 'text-orange-400' : 'text-gray-300'}`}>
+                    {m.model_name}
+                    <ChevronRight size={14} className="text-gray-600" />
+                  </button>
+                  <button onClick={() => rmModel(m.model_id)} className="px-3 py-3 text-gray-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               ))}
               <div className="px-3 py-2">
                 <AddForm placeholder="Новая модель" onAdd={addModel} />
