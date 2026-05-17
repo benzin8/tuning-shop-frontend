@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Search, ChevronDown, ArrowRight,
   Layers, Zap, ShieldCheck, Wind, Cog, Car,
   Truck, BadgeCheck, RotateCcw,
-  Package, TrendingUp, Star,
+  Package, TrendingUp,
 } from 'lucide-react'
+import { getProducts } from '../api/products'
+import { useCart } from '../contexts/CartContext'
 
 const CATEGORIES = [
   { name: 'Подвеска', icon: Layers, count: '240+ товаров' },
@@ -39,28 +43,14 @@ const FEATURES = [
   },
 ]
 
-const PRODUCTS = [
-  { name: 'Амортизатор передний KYB', sku: 'SUS-KYB-A1B2', price: '4 590', category: 'Подвеска', rating: 4.8, reviews: 42 },
-  { name: 'Колодки тормозные Brembo', sku: 'BRK-BRE-C3D4', price: '3 200', category: 'Тормоза', rating: 4.9, reviews: 78 },
-  { name: 'Свечи зажигания NGK', sku: 'ENG-NGK-E5F6', price: '890', category: 'Двигатель', rating: 4.7, reviews: 134 },
-  { name: 'Фильтр масляный Mann', sku: 'ENG-MAN-G7H8', price: '420', category: 'Двигатель', rating: 4.6, reviews: 91 },
-]
-
-function Stars({ rating }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star
-          key={i}
-          size={12}
-          className={i <= Math.round(rating) ? 'text-orange-400 fill-orange-400' : 'text-gray-600'}
-        />
-      ))}
-    </div>
-  )
-}
-
 export default function Home() {
+  const [products, setProducts] = useState([])
+  const { addToCart } = useCart()
+
+  useEffect(() => {
+    getProducts({ limit: 4 }).then(r => setProducts(r.data))
+  }, [])
+
   return (
     <div className="bg-gray-950">
       {/* ── Hero ── */}
@@ -106,12 +96,12 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <a href="#" className="flex items-center gap-2 text-gray-300 hover:text-white text-sm transition-colors group">
+            <Link to="/catalog" className="flex items-center gap-2 text-gray-300 hover:text-white text-sm transition-colors group">
               Весь каталог
               <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-            </a>
+            </Link>
             <span className="text-gray-700">·</span>
-            <a href="#" className="text-gray-400 hover:text-gray-200 text-sm transition-colors">
+            <a href="#categories" className="text-gray-400 hover:text-gray-200 text-sm transition-colors">
               Популярные категории ↓
             </a>
           </div>
@@ -136,23 +126,23 @@ export default function Home() {
       </div>
 
       {/* ── Категории ── */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
+      <section id="categories" className="max-w-7xl mx-auto px-4 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-white">Категории</h2>
             <p className="text-gray-400 mt-1 text-sm">Найдите нужную деталь по типу</p>
           </div>
-          <a href="#" className="text-orange-500 hover:text-orange-400 text-sm flex items-center gap-1 transition-colors group">
+          <Link to="/catalog" className="text-orange-500 hover:text-orange-400 text-sm flex items-center gap-1 transition-colors group">
             Все категории
             <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {CATEGORIES.map(({ name, icon: Icon, count }) => (
-            <a
+            <Link
               key={name}
-              href="#"
+              to="/catalog"
               className="flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4 hover:border-orange-500/40 hover:bg-gray-800/80 transition-all group text-center"
             >
               <div className="w-12 h-12 rounded-xl bg-gray-800 group-hover:bg-orange-500/10 flex items-center justify-center transition-colors">
@@ -162,7 +152,7 @@ export default function Home() {
                 <div className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">{name}</div>
                 <div className="text-xs text-gray-500 mt-0.5">{count}</div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -174,37 +164,36 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-white">Популярные товары</h2>
             <p className="text-gray-400 mt-1 text-sm">Самые покупаемые позиции</p>
           </div>
-          <a href="#" className="text-orange-500 hover:text-orange-400 text-sm flex items-center gap-1 transition-colors group">
+          <Link to="/catalog" className="text-orange-500 hover:text-orange-400 text-sm flex items-center gap-1 transition-colors group">
             Все товары
             <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {PRODUCTS.map(p => (
-            <a
-              key={p.sku}
-              href="#"
-              className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 hover:bg-gray-800/60 transition-all group flex flex-col"
-            >
-              {/* заглушка изображения */}
-              <div className="w-full h-40 bg-gray-800 rounded-xl mb-4 flex items-center justify-center group-hover:bg-gray-700/80 transition-colors">
-                <Package size={40} className="text-gray-600" />
-              </div>
-              <div className="text-xs text-orange-500 font-medium mb-1">{p.category}</div>
-              <div className="text-sm font-semibold text-white mb-1 leading-snug">{p.name}</div>
-              <div className="text-xs text-gray-500 font-mono mb-3">{p.sku}</div>
-              <div className="flex items-center gap-2 mb-4">
-                <Stars rating={p.rating} />
-                <span className="text-xs text-gray-500">{p.reviews} отзывов</span>
-              </div>
+          {products.map(p => (
+            <div key={p.product_id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 hover:border-gray-700 hover:bg-gray-800/60 transition-all group flex flex-col">
+              <Link to={`/product/${p.product_id}`} className="block">
+                <div className="w-full h-40 bg-gray-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center group-hover:bg-gray-700/80 transition-colors">
+                  {p.image_url
+                    ? <img src={p.image_url} alt={p.product_name} className="w-full h-full object-cover" />
+                    : <Package size={40} className="text-gray-600" />
+                  }
+                </div>
+                <div className="text-xs text-orange-500 font-medium mb-1">{p.category.category_name}</div>
+                <div className="text-sm font-semibold text-white mb-1 leading-snug line-clamp-2">{p.product_name}</div>
+                <div className="text-xs text-gray-500 font-mono mb-3">{p.sku}</div>
+              </Link>
               <div className="mt-auto flex items-center justify-between">
-                <span className="text-lg font-bold text-white">{p.price} ₽</span>
-                <button className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+                <span className="text-lg font-bold text-white">{Number(p.price).toLocaleString('ru')} ₽</span>
+                <button
+                  onClick={() => addToCart({ product_id: p.product_id, product_name: p.product_name, price: p.price, image_url: p.image_url })}
+                  className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                >
                   В корзину
                 </button>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       </section>
@@ -241,10 +230,10 @@ export default function Home() {
             <p className="text-orange-100 mb-6 text-lg">
               Подберём запчасти точно под ваш автомобиль — просто выберите марку и модель.
             </p>
-            <button className="inline-flex items-center gap-2 bg-white text-orange-600 font-bold px-7 py-3.5 rounded-xl hover:bg-orange-50 transition-colors">
+            <Link to="/catalog" className="inline-flex items-center gap-2 bg-white text-orange-600 font-bold px-7 py-3.5 rounded-xl hover:bg-orange-50 transition-colors">
               Подобрать по авто
               <ArrowRight size={16} />
-            </button>
+            </Link>
           </div>
         </div>
       </section>
