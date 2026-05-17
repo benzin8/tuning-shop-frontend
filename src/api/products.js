@@ -5,6 +5,8 @@ export const getProduct = (id) => client.get(`/products/${id}`)
 export const createProduct = (data) => client.post('/products/', data)
 export const updateProduct = (id, data) => client.patch(`/products/${id}`, data)
 export const deleteProduct = (id) => client.delete(`/products/${id}`)
+export const getProductCompatibility = (productId) =>
+  client.get(`/products/${productId}/compatibility`)
 export const addCompatibility = (productId, carId) =>
   client.post(`/products/${productId}/compatibility`, { product_id: productId, car_id: carId })
 export const removeCompatibility = (productId, carId) =>

@@ -59,9 +59,8 @@ export default function Catalog() {
       getCars(selectedModel).then(r => setCars(r.data))
     } else {
       setCars([])
-      const updated = { ...filters, car_id: '' }
-      setFilters(updated)
     }
+    setFilters(f => ({ ...f, car_id: '' }))
   }, [selectedModel])
 
   useEffect(() => {
